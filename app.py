@@ -292,7 +292,7 @@ if not st.session_state.authenticated:
 def generate_mock_data():
     records = []
     base_date = jst_now.date() - timedelta(days=365)
-   mock_students = [
+    mock_students = [
         ("一ノ瀬 蓮", "高3"), ("二階堂 翼", "高3"), ("三鷹 隼人", "高3"), ("四方堂 暁", "高3"),
         ("五味 凌雅", "高2"), ("六条 響", "高2"), ("七瀬 奏多", "高2"), ("八神 律", "高2"),
         ("九条 瑛太", "高1"), ("十文字 颯", "高1"), ("百瀬 蓮", "高1"), ("千堂 魁", "高1"),
