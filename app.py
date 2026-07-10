@@ -163,10 +163,11 @@ st.markdown("""
     /* Modern Table Styling for Heatmap */
     .heatmap-container { overflow-x: auto; padding-bottom: 15px; }
     .modern-table { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 0.85rem; min-width: 700px; }
+    .modern-table tbody tr:hover, .modern-table tbody th:hover { background-color: transparent !important; }
     .modern-table th { background-color: var(--secondary-background-color); color: var(--text-color); padding: 12px 8px; font-weight: 600; border-radius: 6px; text-align: center; }
     .modern-table th.sticky-col { position: sticky; left: 0; z-index: 2; }
-    .modern-table td { padding: 12px 8px; border-radius: 6px; text-align: center; font-weight: 700; transition: transform 0.1s; }
-    .modern-table td:hover { transform: scale(1.1); z-index: 10; position: relative; }
+    .modern-table td { padding: 12px 8px; border-radius: 6px; text-align: center; font-weight: 700; transition: filter 0.2s ease; border: 1px solid transparent; }
+    .modern-table td:hover { filter: brightness(1.2); }
     
     /* Ranking Card (SaaS Dashboard Style) */
     .flex-container { display: flex; gap: 24px; margin-bottom: 30px; flex-wrap: wrap; }
@@ -202,7 +203,7 @@ st.markdown("""
     
     /* Highly Visible Time Display (Fixed Contrast) */
     .time-display {
-        margin-top: auto;
+        margin-top: 20px;
         background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
         padding: 10px 24px;
         border-radius: 8px;
@@ -261,17 +262,25 @@ def generate_mock_data():
         status = get_period_status(curr_date)
         growth = 1.0 + (i / 365.0) * 1.5
         
-        if status == "test": base_u = random.randint(10, 16)
-        elif status == "before_test": base_u = random.randint(7, 12)
-        else: base_u = random.randint(3, 8)
+        # テスト期間の利用率を大幅に上げるロジック
+        if status == "test": base_u = random.randint(20, 30)
+        elif status == "before_test": base_u = random.randint(15, 25)
+        else: base_u = random.randint(5, 12)
         
         num_users = min(int(base_u * growth), len(mock_students))
         daily_users = random.sample(mock_students, num_users)
         
         for name, grade in daily_users:
-            in_h = random.randint(14, 19)
-            if curr_date.weekday() >= 5: in_h = random.randint(10, 16)
-            out_h = min(in_h + random.randint(1, 4), 22)
+            # テスト期間は滞在時間も長くする
+            if status == "test" or status == "before_test":
+                in_h = random.randint(13, 17)
+                if curr_date.weekday() >= 5: in_h = random.randint(9, 14)
+                out_h = min(in_h + random.randint(3, 6), 22)
+            else:
+                in_h = random.randint(16, 19)
+                if curr_date.weekday() >= 5: in_h = random.randint(10, 15)
+                out_h = min(in_h + random.randint(1, 3), 22)
+                
             in_m, out_m = random.choice(["00", "15", "30"]), random.choice(["00", "30", "45"])
             in_time_str = f"{in_h:02d}:{in_m}"
             out_time_str = f"{out_h:02d}:{out_m}"
