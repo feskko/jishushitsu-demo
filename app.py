@@ -63,7 +63,7 @@ def learn_multipliers(df):
             test_mult = default_test * (1 - weight) + actual_mult * weight
 
         before_mult = default_before
-        if 'before_test' in counts.index and counts.loc['before_test', 'count'] >= 3 abatement and normal_mean and normal_mean > 0:
+        if 'before_test' in counts.index and counts.loc['before_test', 'count'] >= 3 and normal_mean and normal_mean > 0:
             actual_mult = max(1.0, min(counts.loc['before_test', 'mean'] / normal_mean, 2.5))
             weight = min(counts.loc['before_test', 'count'] / 10.0, 1.0)
             before_mult = default_before * (1 - weight) + actual_mult * weight
@@ -505,19 +505,6 @@ elif menu == "ランキング":
                     render_section_ranking(agg_data, [f"中{i}" for i in range(1, 4)], "中学生の部")
                     render_section_ranking(agg_data, ["高1", "高2"], "高1・高2の部")
                     render_section_ranking(agg_data, ["高3", "既卒/自由/その他", ""], "高3・その他の部")
-                    st.markdown("---")
-                    st.markdown("##### 報告用データ (上位5名)")
-                    copy_text = f"期間：{period_name}度\n\n"
-                    sections = [("【 小学生の部 】", [f"小{i}" for i in range(1, 7)]), ("【 中学生の部 】", [f"中{i}" for i in range(1, 4)]), ("【 高1・高2の部 】", ["高1", "高2"]), ("【 高3・その他の部 】", ["高3", "既卒/自由/その他", ""])]
-                    for sec_name, grades in sections:
-                        sec_df = agg_data[agg_data['学年'].isin(grades)].reset_index(drop=True)
-                        if not sec_df.empty:
-                            sec_df['順位'] = sec_df['利用時間（時間）'].rank(method='min', ascending=False).astype(int)
-                            top5 = sec_df[sec_df['順位'] <= 5].sort_values('順位')
-                            copy_text += f"{sec_name}\n順位\t名前\t学年\t時間\n"
-                            for _, row in top5.iterrows(): copy_text += f"{row['順位']}位\t{row['名前']}さん\t{row['学年']}\t{row['利用時間（時間）']:.1f}h\n"
-                        copy_text += "\n"
-                    st.code(copy_text, language="text")
     else: st.info("データがありません。最初の記録を登録してください。")
 
 elif menu == "分析":
@@ -605,6 +592,9 @@ elif menu == "分析":
     def get_active_slots(in_str, out_str, slots_list):
         def parse_time(t_str):
             t_str = str(t_str).strip()
+            if "コマ" in t_str:
+                try: return datetime.strptime(f"{13 + int((int(t_str.replace('コマ', '')) - 1) * 1.5):02d}:00", "%H:%M").time()
+                except: return None
             try:
                 parts = t_str.split(":")
                 if len(parts) >= 2: return datetime.strptime(f"{int(parts[0]):02d}:{int(parts[1]):02d}", "%H:%M").time()
