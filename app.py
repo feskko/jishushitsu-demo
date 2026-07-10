@@ -139,7 +139,7 @@ js_code = f"""
         }}
     }}
     doc.addEventListener('keydown', function(e) {{ if (e.key === 'Enter' || e.key === 'Tab') {{ if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {{ formatTimeInput(e.target); }} }} }}, true);
-    doc.addEventListener('focusout', function(e) {{ if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {{ formatTimeInput(e.target); }} }}, true);
+    doc.addEventListener('focusout', function(e) {{ if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {{ formatTimeInput(e.target); }} }} }}, true);
 </script>
 """
 components.html(js_code, height=0, width=0)
@@ -200,18 +200,19 @@ st.markdown("""
     .rank-grade { font-size: 0.85rem; color: var(--text-color); opacity: 0.6; margin-bottom: 5px; font-weight: 600; }
     .rank-name { font-size: 1.8rem; font-weight: 900; color: var(--text-color); margin-bottom: auto; letter-spacing: 1px; }
     
-    /* Highly Visible Time Display */
+    /* Highly Visible Time Display (Fixed Contrast) */
     .time-display {
-        margin-top: 20px;
-        background-color: rgba(128, 128, 128, 0.1);
+        margin-top: auto;
+        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
         padding: 10px 24px;
-        border-radius: 12px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: baseline;
         gap: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .time-val { font-size: 1.8rem; font-weight: 900; color: var(--primary-color); }
-    .time-unit { font-size: 0.9rem; font-weight: 700; color: var(--text-color); opacity: 0.7; }
+    .time-val { font-size: 1.8rem; font-weight: 900; color: #FFFFFF !important; }
+    .time-unit { font-size: 0.9rem; font-weight: 700; color: #94A3B8 !important; }
     
     /* Metrics Override */
     div[data-testid="stMetric"] { background-color: transparent; border: none; padding: 0; box-shadow: none; }
@@ -513,11 +514,11 @@ elif menu == "ランキング":
                     render_section_ranking(agg_data, [f"小{i}" for i in range(1, 7)], "小学生の部")
                     render_section_ranking(agg_data, [f"中{i}" for i in range(1, 4)], "中学生の部")
                     render_section_ranking(agg_data, ["高1", "高2"], "高1・高2の部")
-                    render_section_ranking(agg_data, ["高3", "既卒/その他", ""], "高3・その他の部")
+                    render_section_ranking(agg_data, ["高3", "既卒/自由/その他", ""], "高3・その他の部")
                     st.markdown("---")
                     st.markdown("##### 報告用データ (上位5名)")
                     copy_text = f"期間：{period_name}度\n\n"
-                    sections = [("【 小学生の部 】", [f"小{i}" for i in range(1, 7)]), ("【 中学生の部 】", [f"中{i}" for i in range(1, 4)]), ("【 高1・高2の部 】", ["高1", "高2"]), ("【 高3・その他の部 】", ["高3", "既卒/その他", ""])]
+                    sections = [("【 小学生の部 】", [f"小{i}" for i in range(1, 7)]), ("【 中学生の部 】", [f"中{i}" for i in range(1, 4)]), ("【 高1・高2の部 】", ["高1", "高2"]), ("【 高3・その他の部 】", ["高3", "既卒/自由/その他", ""])]
                     for sec_name, grades in sections:
                         sec_df = agg_data[agg_data['学年'].isin(grades)].reset_index(drop=True)
                         if not sec_df.empty:
