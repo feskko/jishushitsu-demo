@@ -242,21 +242,32 @@ if not st.session_state.authenticated:
 
 def generate_mock_data():
     records = []
-    base_date = jst_now.date() - timedelta(days=90)
+    base_date = jst_now.date() - timedelta(days=365)
     mock_students = [
-        ("デモ 太郎", "高3"), ("採用 花子", "高2"), ("面接 健太", "高1"), 
-        ("技術 美咲", "中3"), ("開発 翔太", "中2"), ("分析 さくら", "中1"),
-        ("予測 結衣", "小6"), ("実装 蓮", "小5"), ("設計 葵", "高3"),
-        ("運用 樹", "高2"), ("改善 凛", "中3"), ("提案 陽翔", "高1")
+        ("佐藤 健太", "高3"), ("鈴木 花子", "高3"), ("高橋 翔太", "高3"), ("田中 美咲", "高3"),
+        ("伊藤 蓮", "高2"), ("渡辺 結衣", "高2"), ("山本 陽翔", "高2"), ("中村 凛", "高2"),
+        ("小林 樹", "高1"), ("加藤 さくら", "高1"), ("吉田 葵", "高1"), ("山田 大樹", "高1"),
+        ("佐々木 結菜", "中3"), ("山口 拓海", "中3"), ("松本 陽葵", "中3"), ("井上 陸", "中3"),
+        ("木村 紬", "中2"), ("林 湊", "中2"), ("斎藤 莉子", "中2"), ("清水 蒼", "中2"),
+        ("山崎 陽菜", "中1"), ("森 悠真", "中1"), ("池田 伊織", "中1"), ("橋本 結", "中1"),
+        ("阿部 陽", "小6"), ("石川 澪", "小6"), ("山下 颯太", "小6"), ("中島 凪", "小6"),
+        ("小川 結翔", "小5"), ("前田 陽菜乃", "小5"), ("岡田 奏太", "小5"), ("長谷川 琴音", "小5"),
+        ("藤田 悠", "小4"), ("後藤 結心", "小4"), ("近藤 律", "小4"), ("村上 杏", "小4")
     ]
-    for i in range(91):
+    for i in range(366):
         curr_date = base_date + timedelta(days=i)
         if curr_date.weekday() == 6 and random.random() < 0.8: continue
+        
         status = get_period_status(curr_date)
-        if status == "test": num_users = random.randint(8, 12)
-        elif status == "before_test": num_users = random.randint(6, 10)
-        else: num_users = random.randint(3, 7)
-        daily_users = random.sample(mock_students, min(num_users, len(mock_students)))
+        growth = 1.0 + (i / 365.0) * 1.5
+        
+        if status == "test": base_u = random.randint(10, 16)
+        elif status == "before_test": base_u = random.randint(7, 12)
+        else: base_u = random.randint(3, 8)
+        
+        num_users = min(int(base_u * growth), len(mock_students))
+        daily_users = random.sample(mock_students, num_users)
+        
         for name, grade in daily_users:
             in_h = random.randint(14, 19)
             if curr_date.weekday() >= 5: in_h = random.randint(10, 16)
@@ -513,6 +524,14 @@ elif menu == "分析":
     jst_today = pd.Timestamp(jst_now.date())
 
     if not df_ana.empty:
+        # 年間利用トレンドグラフの追加
+        st.markdown("<div class='section-title'>年間利用トレンド（過去12ヶ月）</div>", unsafe_allow_html=True)
+        df_trend = df_ana.copy()
+        df_trend['年月'] = df_trend['日付'].dt.strftime('%Y-%m')
+        trend_agg = df_trend.groupby('年月').agg(月間総学習時間=('利用時間（時間）', 'sum')).reset_index()
+        trend_agg = trend_agg.sort_values('年月')
+        st.bar_chart(trend_agg.set_index('年月')['月間総学習時間'])
+
         this_month_start = jst_today.replace(day=1)
         last_month_start = (this_month_start - pd.Timedelta(days=1)).replace(day=1)
         last_month_end = this_month_start - pd.Timedelta(days=1)
@@ -578,9 +597,16 @@ elif menu == "分析":
         
         st.markdown(f"""
         <div style='background-color: var(--secondary-background-color); border-left: 4px solid var(--primary-color); padding: 20px; border-radius: 8px; margin-top: 20px;'>
-            <div style='font-weight: bold; color: var(--text-color); margin-bottom: 8px; font-size: 1.1rem;'>翌月の着地予測</div>
-            <div style='color: var(--text-color); font-size: 1rem;'>
-                現在のペースと成長トレンドを考慮すると、来月は <span style='color: var(--primary-color); font-weight: bold; font-size: 1.2rem;'>約 {next_month_h:.0f} 時間</span> の利用と、<span style='color: var(--primary-color); font-weight: bold; font-size: 1.2rem;'>約 {int(next_month_u)} 名</span> の生徒の来室が見込まれます。
+            <div style='font-weight: 800; color: var(--text-color); margin-bottom: 8px; font-size: 1.1rem;'>翌月利用予測（直近トレンドからの推計）</div>
+            <div style='display: flex; gap: 40px; margin-top: 10px;'>
+                <div>
+                    <div style='font-size: 0.85rem; color: var(--text-color); opacity: 0.7; font-weight: 600;'>推定総学習時間</div>
+                    <div style='color: var(--primary-color); font-size: 1.8rem; font-weight: 900;'>{next_month_h:.0f} <span style='font-size: 1rem; font-weight: 600; opacity: 0.8;'>HOURS</span></div>
+                </div>
+                <div>
+                    <div style='font-size: 0.85rem; color: var(--text-color); opacity: 0.7; font-weight: 600;'>推定来室者数</div>
+                    <div style='color: var(--primary-color); font-size: 1.8rem; font-weight: 900;'>{int(next_month_u)} <span style='font-size: 1rem; font-weight: 600; opacity: 0.8;'>USERS</span></div>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -672,8 +698,8 @@ elif menu == "分析":
         else: st.info("集計するデータがありません。")
 
     with tab3:
-        st.markdown("<div class='section-title'>来週の混雑予測（推計ロジック適用）</div>", unsafe_allow_html=True)
-        st.markdown("<p style='color: var(--text-color); opacity: 0.8; font-size: 0.95rem; line-height: 1.5;'>直近4週間（過去28日間）の実際の利用データを解析し、回帰的な手法を用いて来週の各時間帯の平均来室人数を推計しています。</p>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>来週の混雑予測（推計モデル適用）</div>", unsafe_allow_html=True)
+        st.markdown("<p style='color: var(--text-color); opacity: 0.8; font-size: 0.95rem; line-height: 1.5;'>直近4週間の実績データから、回帰的な手法を用いて来週の各時間帯の平均来室人数を推計しています。</p>", unsafe_allow_html=True)
         if not df_ana.empty:
             test_mult, before_mult = learn_multipliers(df_ana)
             df_recent = df_ana[pd.to_datetime(df_ana['日付']) >= (jst_today - pd.Timedelta(days=28))]
@@ -685,7 +711,7 @@ elif menu == "分析":
                 msg_parts = []
                 if has_test: msg_parts.append("「テスト期間」")
                 if has_before: msg_parts.append("「テスト1週間前」")
-                st.markdown(f"<div style='background-color: rgba(220, 38, 38, 0.1); border-left: 4px solid #DC2626; padding: 15px; margin-bottom: 20px; border-radius: 4px;'><p style='color:#DC2626; font-weight:bold; margin:0;'>[アラート] 来週は{' または '.join(msg_parts)}に該当する日が含まれるため、変動係数を適用した予測を行っています。座席確保にご注意ください。</p></div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background-color: rgba(220, 38, 38, 0.1); border-left: 4px solid #DC2626; padding: 15px; margin-bottom: 20px; border-radius: 4px;'><p style='color:#DC2626; font-weight:bold; margin:0;'>[アラート] 来週は{' または '.join(msg_parts)}に該当する日が含まれるため、予測モデルに変動係数が適用されています。</p></div>", unsafe_allow_html=True)
 
             if not df_recent.empty:
                 pred_time_slots = get_time_slots_for_period((jst_today + pd.Timedelta(days=7)).strftime('%Y年%m月'))
