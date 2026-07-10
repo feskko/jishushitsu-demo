@@ -63,7 +63,7 @@ def learn_multipliers(df):
             test_mult = default_test * (1 - weight) + actual_mult * weight
 
         before_mult = default_before
-        if 'before_test' in counts.index and counts.loc['before_test', 'count'] >= 3 and normal_mean and normal_mean > 0:
+        if 'before_test' in counts.index and counts.loc['before_test', 'count'] >= 3 abatement and normal_mean and normal_mean > 0:
             actual_mult = max(1.0, min(counts.loc['before_test', 'mean'] / normal_mean, 2.5))
             weight = min(counts.loc['before_test', 'count'] / 10.0, 1.0)
             before_mult = default_before * (1 - weight) + actual_mult * weight
@@ -465,17 +465,7 @@ elif menu == "ランキング":
             else:
                 badge = f"<div class='rank-badge badge-normal'>{rank_val}位</div>"
                 
-            html += f"""
-            <div class='rank-card'>
-                {badge}
-                <div class='rank-grade'>{grade_disp}</div>
-                <div class='rank-name'>{name}</div>
-                <div class='time-display'>
-                    <span class='time-val'>{time_val:.1f}</span>
-                    <span class='time-unit'>HOURS</span>
-                </div>
-            </div>
-            """
+            html += f"<div class='rank-card'>{badge}<div class='rank-grade'>{grade_disp}</div><div class='rank-name'>{name}</div><div class='time-display'><span class='time-val'>{time_val:.1f}</span><span class='time-unit'>HOURS</span></div></div>"
         html += "</div>"
         st.markdown(html, unsafe_allow_html=True)
 
@@ -615,9 +605,6 @@ elif menu == "分析":
     def get_active_slots(in_str, out_str, slots_list):
         def parse_time(t_str):
             t_str = str(t_str).strip()
-            if "コマ" in t_str:
-                try: return datetime.strptime(f"{13 + int((int(t_str.replace('コマ', '')) - 1) * 1.5):02d}:00", "%H:%M").time()
-                except: return None
             try:
                 parts = t_str.split(":")
                 if len(parts) >= 2: return datetime.strptime(f"{int(parts[0]):02d}:{int(parts[1]):02d}", "%H:%M").time()
